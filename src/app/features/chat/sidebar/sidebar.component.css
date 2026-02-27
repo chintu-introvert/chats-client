@@ -1,0 +1,87 @@
+.sidebar-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    background-color: var(--wa-panel-background);
+}
+
+.sidebar-header {
+    height: var(--header-height);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--wa-panel-background-lighter);
+    border-right: 1px solid var(--wa-border-color);
+    /* To separate from chat area if touching */
+}
+
+.header-user {
+    cursor: pointer;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.action-btn:active {
+    background-color: rgba(11, 20, 26, .1);
+}
+
+/* Search Area */
+.sidebar-search-container {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--wa-border-color);
+    background-color: var(--wa-panel-background);
+}
+
+.search-input-wrapper {
+    display: flex;
+    align-items: center;
+    background-color: var(--wa-search-bg);
+    border-radius: 8px;
+    padding: 0 12px;
+    height: 36px;
+    gap: 10px;
+}
+
+.search-icon {
+    display: flex;
+    align-items: center;
+    color: var(--wa-icon-color);
+}
+
+.search-input {
+    flex: 1;
+    font-size: 14px;
+    color: var(--wa-text-primary);
+    background: transparent;
+    border: none;
+    outline: none;
+}
+
+.search-input::placeholder {
+    color: var(--wa-text-secondary);
+}
+
+/* Content */
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    background-color: var(--wa-panel-background);
+}

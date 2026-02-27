@@ -1,1 +1,116 @@
 /* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+    /* WhatsApp Light Theme Colors */
+    --wa-primary: #008069;
+    --wa-primary-light: #00a884;
+    --wa-primary-dark: #005c4b;
+    --wa-background-default: #d1d7db;
+    --wa-panel-background: #ffffff;
+    --wa-panel-background-lighter: #f0f2f5;
+    --wa-text-primary: #111b21;
+    --wa-text-secondary: #667781;
+    --wa-border-color: #d1d7db;
+    --wa-chat-background: #efeae2;
+    --wa-message-in: #ffffff;
+    --wa-message-out: #d9fdd3;
+    --wa-message-meta: #667781;
+    --wa-icon-color: #54656f;
+    --wa-unread-marker: #00a884;
+
+    --wa-input-bg: #ffffff;
+    --wa-search-bg: #f0f2f5;
+    --wa-hover-bg: #f5f6f6;
+    --wa-active-bg: #f0f2f5;
+
+    /* Layout Variables */
+    --sidebar-width: 30%;
+    --sidebar-min-width: 300px;
+    --sidebar-max-width: 400px;
+
+    --header-height: 60px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* WhatsApp Dark Theme Colors */
+        --wa-primary: #00a884;
+        --wa-primary-light: #00a884;
+        --wa-primary-dark: #005c4b;
+        --wa-background-default: #111b21;
+        /* Outer dark area */
+        --wa-panel-background: #111b21;
+        /* Main panels */
+        --wa-panel-background-lighter: #202c33;
+        --wa-text-primary: #e9edef;
+        --wa-text-secondary: #8696a0;
+        --wa-border-color: #222d34;
+        --wa-chat-background: #0b141a;
+        --wa-message-in: #202c33;
+        --wa-message-out: #005c4b;
+        --wa-message-meta: #8696a0;
+        --wa-icon-color: #aebac1;
+        --wa-unread-marker: #00a884;
+
+        --wa-input-bg: #2a3942;
+        --wa-search-bg: #202c33;
+        --wa-hover-bg: #202c33;
+        --wa-active-bg: #2a3942;
+    }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: var(--wa-text-primary);
+    background-color: var(--wa-background-default);
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(134, 150, 160, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(134, 150, 160, 0.4);
+}
+
+input,
+button,
+textarea {
+    font-family: inherit;
+    color: inherit;
+    border: none;
+    outline: none;
+    background: none;
+}
+
+button {
+    cursor: pointer;
+}
+
+.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

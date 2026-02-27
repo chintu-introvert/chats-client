@@ -1,0 +1,98 @@
+.chat-item {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    height: 72px;
+    cursor: pointer;
+    background-color: var(--wa-panel-background);
+    transition: background-color 0.2s;
+}
+
+.chat-item:hover {
+    background-color: var(--wa-hover-bg);
+}
+
+.chat-item.active {
+    background-color: var(--wa-active-bg);
+}
+
+.chat-avatar {
+    margin-right: 15px;
+}
+
+.chat-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    border-bottom: 1px solid var(--wa-border-color);
+    padding-right: 16px;
+    min-width: 0;
+    /* needed for flex truncating child */
+}
+
+/* Remove border from last item */
+:host-context(:last-child) .chat-info {
+    border-bottom: none;
+}
+
+.chat-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2px;
+}
+
+.chat-name {
+    font-size: 17px;
+    font-weight: 400;
+    color: var(--wa-text-primary);
+    flex: 1;
+}
+
+.chat-time {
+    font-size: 12px;
+    color: var(--wa-text-secondary);
+    margin-left: 6px;
+}
+
+.chat-item.has-unread .chat-time {
+    color: var(--wa-unread-marker);
+    font-weight: 500;
+}
+
+.chat-bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-last-message {
+    font-size: 14px;
+    color: var(--wa-text-secondary);
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.message-status {
+    margin-right: 4px;
+    display: flex;
+    align-items: center;
+}
+
+.chat-unread {
+    background-color: var(--wa-unread-marker);
+    color: white;
+    border-radius: 50%;
+    min-width: 20px;
+    height: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    margin-left: 6px;
+}

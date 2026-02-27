@@ -1,0 +1,25 @@
+<div class="app-wrapper">
+    <div class="app-background"></div>
+    <div class="app-container">
+        <div class="layout-main shadow-lg">
+            <div class="layout-sidebar" [class.mobile-hidden]="isChatOpen">
+                <app-sidebar></app-sidebar>
+            </div>
+            <div class="layout-chat" [class.mobile-hidden]="!isChatOpen">
+                <app-chat-window *ngIf="isChatOpen"></app-chat-window>
+                <div class="placeholder-content" *ngIf="!isChatOpen">
+                    <div class="placeholder-icon">
+                        <svg viewBox="0 0 24 24" width="100" height="100" fill="var(--wa-icon-color)">
+                            <path
+                                d="M19.005 3.175H4.674C3.642 3.175 3 3.789 3 4.821V21.02l3.544-3.514h12.461c1.033 0 2.064-.616 2.064-1.648V4.821c-.001-1.032-1.032-1.646-2.064-1.646zm-4.989 9.869H7.041V11.1h6.975v1.944zm3-4H7.041V7.1h9.975v1.944z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h2>WhatsApp for Web</h2>
+                    <p>Send and receive messages without keeping your phone online.<br>Use WhatsApp on up to 4 linked
+                        devices and 1 phone at the same time.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

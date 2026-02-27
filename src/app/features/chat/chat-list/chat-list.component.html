@@ -1,0 +1,7 @@
+<div class="chat-list-container">
+    <div *ngIf="(chats$ | async) as chats">
+        <app-chat-list-item *ngFor="let chat of chats" [chat]="chat" [isActive]="chat.id === activeChatId"
+            (click)="onChatSelected(chat.id)">
+        </app-chat-list-item>
+    </div>
+</div>
