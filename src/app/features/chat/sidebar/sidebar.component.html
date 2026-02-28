@@ -3,16 +3,23 @@
     <header class="sidebar-header">
         <div class="header-user">
             <app-avatar [src]="currentUser$.avatarUrl" [alt]="currentUser$.name" [size]="40"></app-avatar>
+            <div class="header-user-info">
+                <span class="header-username">{{ currentUser$.name }}</span>
+                <span class="header-bio">{{ userBio }}</span>
+            </div>
         </div>
         <div class="header-actions">
-            <button class="action-btn" title="Status" aria-label="Status">
-                <app-icon name="status" [size]="24"></app-icon>
-            </button>
             <button class="action-btn" title="New Chat" aria-label="New Chat">
                 <app-icon name="chat" [size]="24"></app-icon>
             </button>
-            <button class="action-btn" title="Menu" aria-label="Menu">
-                <app-icon name="menu" [size]="24"></app-icon>
+            <button
+                type="button"
+                class="action-btn"
+                title="Log out"
+                aria-label="Log out"
+                (click)="logout()"
+            >
+                <app-icon name="logout" [size]="24"></app-icon>
             </button>
         </div>
     </header>

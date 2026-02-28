@@ -6,6 +6,8 @@
     cursor: pointer;
     background-color: var(--wa-panel-background);
     transition: background-color 0.2s;
+    position: relative;
+    /* ensure overlay acts relative to row */
 }
 
 .chat-item:hover {
@@ -27,7 +29,7 @@
     justify-content: center;
     height: 100%;
     border-bottom: 1px solid var(--wa-border-color);
-    padding-right: 16px;
+    padding-right: 24px;
     min-width: 0;
     /* needed for flex truncating child */
 }
@@ -94,5 +96,92 @@
     align-items: center;
     justify-content: center;
     padding: 0 6px;
-    margin-left: 6px;
+}
+
+/* Chat Menu Styles */
+.chat-actions {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.chat-menu-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.menu-trigger {
+    background: transparent;
+    border: none;
+    color: var(--wa-icon-color);
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s, background-color 0.2s;
+    border-radius: 50%;
+    height: 32px;
+    /* Increased height */
+    width: 32px;
+    /* Increased width */
+}
+
+.chat-item:hover .menu-trigger {
+    opacity: 1;
+}
+
+.menu-trigger:hover,
+.menu-trigger:active,
+.menu-trigger.active {
+    background-color: var(--wa-hover-bg);
+    opacity: 1;
+    /* Ensure opacity is 1 on active/hover */
+}
+
+.chat-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background-color: var(--wa-panel-background);
+    border-radius: 8px;
+    box-shadow: 0 2px 5px 0 rgba(11, 20, 26, .26), 0 2px 10px 0 rgba(11, 20, 26, .16);
+    min-width: 140px;
+    z-index: 1000;
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-item {
+    background: transparent;
+    border: none;
+    padding: 10px 24px;
+    text-align: left;
+    font-size: 14px;
+    color: var(--wa-text-primary);
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+}
+
+.menu-item:hover {
+    background-color: var(--wa-hover-bg);
+}
+
+.menu-item.delete {
+    color: #ef5350;
+    /* A distinct red color for destructive action */
+}
+
+.menu-item.delete:hover {
+    background-color: #feecec;
 }

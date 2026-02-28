@@ -12,23 +12,53 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: var(--wa-panel-background-lighter);
+    background-color: var(--wa-panel-background);
     border-right: 1px solid var(--wa-border-color);
-    /* To separate from chat area if touching */
 }
 
 .header-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     cursor: pointer;
+    min-width: 0;
+}
+
+.header-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.header-username {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--wa-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.header-bio {
+    font-size: 13px;
+    color: var(--wa-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .header-actions {
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-shrink: 0;
 }
 
 .action-btn {
     width: 40px;
+    min-width: 40px;
     height: 40px;
     border-radius: 50%;
     border: none;
@@ -37,6 +67,13 @@
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s;
+    flex-shrink: 0;
+    color: var(--wa-icon-color);
+}
+
+.action-btn:hover {
+    background-color: var(--wa-hover-bg);
+    border-radius: 50%;
 }
 
 .action-btn:active {

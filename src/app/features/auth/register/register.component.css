@@ -1,0 +1,148 @@
+:host {
+    display: block;
+    min-height: 100vh;
+    width: 100%;
+}
+
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--wa-background-default);
+    padding: 24px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 400px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+    padding: 32px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .auth-card {
+        background-color: #2a3942;
+    }
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.auth-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #111b21;
+    margin-bottom: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .auth-header h1 {
+        color: #e9edef;
+    }
+}
+
+.auth-header p {
+    font-size: 14px;
+    color: var(--wa-text-secondary);
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.auth-error {
+    padding: 12px;
+    background: rgba(220, 53, 69, 0.12);
+    color: #dc3545;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111b21;
+}
+
+@media (prefers-color-scheme: dark) {
+    .form-group label {
+        color: #e9edef;
+    }
+}
+
+.form-group input {
+    padding: 12px 14px;
+    border: 1px solid #d1d7db;
+    border-radius: 6px;
+    background: #f0f2f5;
+    color: #111b21;
+    font-size: 15px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .form-group input {
+        border-color: #222d34;
+        background: #202c33;
+        color: #e9edef;
+    }
+}
+
+.form-group input::placeholder {
+    color: var(--wa-text-secondary);
+}
+
+.form-group input:focus {
+    border-color: var(--wa-primary);
+    outline: none;
+}
+
+.auth-submit {
+    margin-top: 8px;
+    padding: 12px 24px;
+    background: var(--wa-primary);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.auth-submit:hover:not(:disabled) {
+    background: var(--wa-primary-light);
+}
+
+.auth-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.auth-footer {
+    margin-top: 24px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--wa-text-secondary);
+}
+
+.auth-footer a {
+    color: var(--wa-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}

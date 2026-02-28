@@ -1,7 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chat } from '../../../core/models/chat.model';
 import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
+import { ChatService } from '../../../core/services/chat.service';
 
 @Component({
     selector: 'app-chat-list-item',
@@ -14,12 +15,22 @@ export class ChatListItemComponent {
     @Input() chat!: Chat;
     @Input() isActive: boolean = false;
 
+    isMenuOpen = false;
+
+    constructor(
+        private chatService: ChatService,
+        private elementRef: ElementRef
+    ) { }
+
+    get currentUserId(): string {
+        return this.chatService.getCurrentUser().id;
+    }
+
     get chatName(): string {
         if (this.chat.isGroup) {
             return this.chat.groupName || 'Group';
         } else {
-            // Find the other participant
-            const otherUser = this.chat.participants.find(p => p.id !== 'user1'); // Assuming 'user1' is current user id based on service mock
+            const otherUser = this.chat.participants.find(p => p.id !== this.currentUserId);
             return otherUser ? otherUser.name : 'Unknown';
         }
     }
@@ -28,7 +39,7 @@ export class ChatListItemComponent {
         if (this.chat.isGroup) {
             return this.chat.groupAvatar || '';
         } else {
-            const otherUser = this.chat.participants.find(p => p.id !== 'user1');
+            const otherUser = this.chat.participants.find(p => p.id !== this.currentUserId);
             return otherUser ? otherUser.avatarUrl : '';
         }
     }
@@ -37,5 +48,35 @@ export class ChatListItemComponent {
         if (!this.chat.lastMessage) return '';
         const date = new Date(this.chat.lastMessage.timestamp);
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    toggleMenu(event: Event) {
+        event.stopPropagation();
+        this.isMenuOpen = !this.isMenuOpen;
+    }
+
+    onPin(event: Event) {
+        event.stopPropagation();
+        this.chatService.pinChat(this.chat.id);
+        this.isMenuOpen = false;
+    }
+
+    onArchive(event: Event) {
+        event.stopPropagation();
+        this.chatService.archiveChat(this.chat.id);
+        this.isMenuOpen = false;
+    }
+
+    onDelete(event: Event) {
+        event.stopPropagation();
+        this.chatService.deleteChat(this.chat.id);
+        this.isMenuOpen = false;
+    }
+
+    @HostListener('document:click', ['$event'])
+    onDocumentClick(event: Event) {
+        if (this.isMenuOpen && !this.elementRef.nativeElement.contains(event.target)) {
+            this.isMenuOpen = false;
+        }
     }
 }

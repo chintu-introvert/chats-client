@@ -29,17 +29,21 @@ export class ChatWindowComponent implements OnDestroy {
         });
     }
 
+    get currentUserId(): string {
+        return this.chatService.getCurrentUser().id;
+    }
+
     get chatName(): string {
         if (!this.activeChat) return '';
         if (this.activeChat.isGroup) return this.activeChat.groupName || 'Group';
-        const otherUser = this.activeChat.participants.find(p => p.id !== 'user1');
+        const otherUser = this.activeChat.participants.find(p => p.id !== this.currentUserId);
         return otherUser ? otherUser.name : 'Unknown';
     }
 
     get chatAvatar(): string {
         if (!this.activeChat) return '';
         if (this.activeChat.isGroup) return this.activeChat.groupAvatar || '';
-        const otherUser = this.activeChat.participants.find(p => p.id !== 'user1');
+        const otherUser = this.activeChat.participants.find(p => p.id !== this.currentUserId);
         return otherUser ? otherUser.avatarUrl : '';
     }
 
