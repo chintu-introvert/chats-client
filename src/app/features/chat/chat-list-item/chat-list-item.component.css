@@ -7,7 +7,7 @@
     background-color: var(--wa-panel-background);
     transition: background-color 0.2s;
     position: relative;
-    /* ensure overlay acts relative to row */
+    box-sizing: border-box;
 }
 
 .chat-item:hover {
@@ -20,6 +20,7 @@
 
 .chat-avatar {
     margin-right: 15px;
+    flex-shrink: 0;
 }
 
 .chat-info {
@@ -29,45 +30,52 @@
     justify-content: center;
     height: 100%;
     border-bottom: 1px solid var(--wa-border-color);
-    padding-right: 24px;
+    padding-right: 16px;
     min-width: 0;
-    /* needed for flex truncating child */
+    position: relative;
 }
 
-/* Remove border from last item */
-:host-context(:last-child) .chat-info {
+:host-context(:last-child) .chat-item .chat-info {
     border-bottom: none;
 }
 
 .chat-top-row {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 2px;
+    align-items: center;
+    margin-bottom: 4px;
+    width: 100%;
 }
 
 .chat-name {
     font-size: 17px;
-    font-weight: 400;
+    font-weight: 500;
     color: var(--wa-text-primary);
     flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .chat-time {
     font-size: 12px;
     color: var(--wa-text-secondary);
-    margin-left: 6px;
+    margin-left: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
-.chat-item.has-unread .chat-time {
+.chat-time.unread {
     color: var(--wa-unread-marker);
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .chat-bottom-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
+    position: relative;
 }
 
 .chat-last-message {
@@ -76,6 +84,10 @@
     flex: 1;
     display: flex;
     align-items: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 8px;
 }
 
 .message-status {
@@ -84,36 +96,68 @@
     align-items: center;
 }
 
+.chat-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
 .chat-unread {
     background-color: var(--wa-unread-marker);
     color: white;
-    border-radius: 50%;
+    border-radius: 10px;
     min-width: 20px;
     height: 20px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0 6px;
+    box-sizing: border-box;
+    line-height: normal;
 }
 
-/* Chat Menu Styles */
+/* Chat actions container placed absolutely on the right of bottom row */
 .chat-actions {
     position: absolute;
-    right: 16px;
+    right: -8px;
     top: 50%;
     transform: translateY(-50%);
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 12px;
+    gap: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
+    background: linear-gradient(90deg, transparent, var(--wa-panel-background) 30%);
+    padding-left: 20px;
+    height: 100%;
+}
+
+.chat-item:hover .chat-actions {
+    background: linear-gradient(90deg, transparent, var(--wa-hover-bg) 30%);
+}
+
+.chat-item.active .chat-actions {
+    background: linear-gradient(90deg, transparent, var(--wa-active-bg) 30%);
+}
+
+.chat-item:hover .chat-actions,
+.chat-menu-container .menu-trigger.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Show chat actions if menu is active */
+.chat-actions:has(.menu-trigger.active) {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .chat-menu-container {
     position: relative;
-    display: flex;
-    align-items: center;
 }
 
 .menu-trigger {
@@ -121,29 +165,25 @@
     border: none;
     color: var(--wa-icon-color);
     cursor: pointer;
-    padding: 2px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    transition: opacity 0.2s, background-color 0.2s;
     border-radius: 50%;
-    height: 32px;
-    /* Increased height */
-    width: 32px;
-    /* Increased width */
-}
-
-.chat-item:hover .menu-trigger {
-    opacity: 1;
+    transition: background-color 0.2s;
 }
 
 .menu-trigger:hover,
-.menu-trigger:active,
 .menu-trigger.active {
-    background-color: var(--wa-hover-bg);
-    opacity: 1;
-    /* Ensure opacity is 1 on active/hover */
+    background-color: rgba(11, 20, 26, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+    .menu-trigger:hover,
+    .menu-trigger.active {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
 }
 
 .chat-menu {
@@ -151,37 +191,50 @@
     top: 100%;
     right: 0;
     margin-top: 4px;
-    background-color: var(--wa-panel-background);
+    background-color: var(--wa-panel-background-lighter);
     border-radius: 8px;
-    box-shadow: 0 2px 5px 0 rgba(11, 20, 26, .26), 0 2px 10px 0 rgba(11, 20, 26, .16);
-    min-width: 140px;
-    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 1px rgba(0, 0, 0, 0.2);
+    min-width: 160px;
+    z-index: 9999;
     padding: 8px 0;
     display: flex;
     flex-direction: column;
 }
 
+@media (prefers-color-scheme: dark) {
+    .chat-menu {
+        background-color: #2a3942;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+}
+
 .menu-item {
     background: transparent;
     border: none;
-    padding: 10px 24px;
+    padding: 12px 24px;
     text-align: left;
-    font-size: 14px;
+    font-size: 14.5px;
     color: var(--wa-text-primary);
     cursor: pointer;
     transition: background-color 0.2s;
     width: 100%;
+    font-weight: 400;
 }
 
 .menu-item:hover {
     background-color: var(--wa-hover-bg);
 }
 
+@media (prefers-color-scheme: dark) {
+    .menu-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+}
+
 .menu-item.delete {
-    color: #ef5350;
-    /* A distinct red color for destructive action */
+    color: #f15c6d;
 }
 
 .menu-item.delete:hover {
-    background-color: #feecec;
+    background-color: rgba(241, 92, 109, 0.1);
 }

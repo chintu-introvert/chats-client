@@ -2,7 +2,7 @@
     <!-- Header -->
     <header class="sidebar-header">
         <div class="header-user">
-            <app-avatar [src]="currentUser$.avatarUrl" [alt]="currentUser$.name" [size]="40"></app-avatar>
+            <app-avatar [src]="currentUser$.avatarUrl" [alt]="currentUser$.name" [size]="42"></app-avatar>
             <div class="header-user-info">
                 <span class="header-username">{{ currentUser$.name }}</span>
                 <span class="header-bio">{{ userBio }}</span>
@@ -10,7 +10,7 @@
         </div>
         <div class="header-actions">
             <button class="action-btn" title="New Chat" aria-label="New Chat">
-                <app-icon name="chat" [size]="24"></app-icon>
+                <app-icon name="chat" [size]="22"></app-icon>
             </button>
             <button
                 type="button"
@@ -19,7 +19,7 @@
                 aria-label="Log out"
                 (click)="logout()"
             >
-                <app-icon name="logout" [size]="24"></app-icon>
+                <app-icon name="logout" [size]="22"></app-icon>
             </button>
         </div>
     </header>
@@ -28,9 +28,9 @@
     <div class="sidebar-search-container">
         <div class="search-input-wrapper">
             <div class="search-icon">
-                <app-icon name="search" [size]="20"></app-icon>
+                <app-icon name="search" [size]="18"></app-icon>
             </div>
-            <input type="text" placeholder="Search or start new chat" class="search-input">
+            <input type="text" placeholder="Search or start a new chat" class="search-input">
         </div>
     </div>
 

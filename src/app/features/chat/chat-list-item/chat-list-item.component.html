@@ -1,19 +1,17 @@
 <div class="chat-item" [class.active]="isActive">
     <div class="chat-avatar">
-        <app-avatar [src]="chatAvatar" [alt]="chatName" [size]="49"></app-avatar>
+        <app-avatar [src]="chatAvatar" [alt]="chatName" [size]="52"></app-avatar>
     </div>
 
     <div class="chat-info">
         <div class="chat-top-row">
             <span class="chat-name text-truncate">{{ chatName }}</span>
-
-            <span class="chat-time">{{ lastMessageTime }}</span>
+            <span class="chat-time" [class.unread]="chat.unreadCount > 0">{{ lastMessageTime }}</span>
         </div>
 
         <div class="chat-bottom-row">
             <span class="chat-last-message text-truncate">
                 <span *ngIf="chat.lastMessage?.senderId === 'user1'" class="message-status">
-                    <!-- Double Check Icon simplified -->
                     <svg viewBox="0 0 16 15" width="16" height="15" fill="var(--wa-icon-color)"
                         *ngIf="chat.lastMessage?.status === 'read'">
                         <path
@@ -23,25 +21,30 @@
                 </span>
                 {{ chat.lastMessage?.content || 'No messages yet' }}
             </span>
-        </div>
-        <div class="chat-actions">
-            <div class="chat-unread" *ngIf="chat.unreadCount > 0">
-                <span>{{ chat.unreadCount }}</span>
+
+            <div class="chat-badges">
+                <div class="chat-unread" *ngIf="chat.unreadCount > 0">
+                    <span>{{ chat.unreadCount }}</span>
+                </div>
             </div>
-            <div class="chat-menu-container">
-                <button class="menu-trigger" [class.active]="isMenuOpen" (click)="toggleMenu($event)"
-                    aria-label="Chat options">
-                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                        <path
-                            d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z">
-                        </path>
-                    </svg>
-                </button>
-                <div class="chat-menu" *ngIf="isMenuOpen" (click)="$event.stopPropagation()">
-                    <button class="menu-item" (click)="onPin($event)">Pin chat</button>
-                    <button class="menu-item" (click)="onArchive($event)">Archive chat</button>
-                    <button class="menu-item delete" (click)="onDelete($event)">Delete chat</button>
+            
+            <div class="chat-actions">
+                <div class="chat-menu-container">
+                    <button class="menu-trigger" [class.active]="isMenuOpen" (click)="toggleMenu($event)"
+                        aria-label="Chat options">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                            <path
+                                d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z">
+                            </path>
+                        </svg>
+                    </button>
+                    <div class="chat-menu" *ngIf="isMenuOpen" (click)="$event.stopPropagation()">
+                        <button class="menu-item" (click)="onPin($event)">Pin chat</button>
+                        <button class="menu-item" (click)="onArchive($event)">Archive chat</button>
+                        <button class="menu-item delete" (click)="onDelete($event)">Delete chat</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
