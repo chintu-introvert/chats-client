@@ -20,7 +20,7 @@ export class LoginComponent implements OnInit {
     constructor(
         private auth: AuthService,
         private router: Router
-    ) {}
+    ) { }
 
     ngOnInit(): void {
         if (this.auth.isAuthenticated()) {
@@ -35,12 +35,15 @@ export class LoginComponent implements OnInit {
             return;
         }
         this.loading = true;
-        const success = this.auth.login(this.email.trim(), this.password);
-        this.loading = false;
-        if (success) {
-            this.router.navigate(['/chat']);
-        } else {
-            this.error = 'Invalid email or password.';
-        }
+        this.auth.login(this.email.trim(), this.password).subscribe({
+            next: () => {
+                this.loading = false;
+                this.router.navigate(['/chat']);
+            },
+            error: () => {
+                this.loading = false;
+                this.error = 'Invalid email or password.';
+            }
+        });
     }
 }

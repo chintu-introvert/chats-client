@@ -22,7 +22,7 @@ export class RegisterComponent implements OnInit {
     constructor(
         private auth: AuthService,
         private router: Router
-    ) {}
+    ) { }
 
     ngOnInit(): void {
         if (this.auth.isAuthenticated()) {
@@ -53,12 +53,15 @@ export class RegisterComponent implements OnInit {
             return;
         }
         this.loading = true;
-        const success = this.auth.register(this.name.trim(), this.email.trim(), this.password);
-        this.loading = false;
-        if (success) {
-            this.router.navigate(['/chat']);
-        } else {
-            this.error = 'An account with this email already exists.';
-        }
+        this.auth.register(this.name.trim(), this.email.trim(), this.password).subscribe({
+            next: () => {
+                this.loading = false;
+                this.router.navigate(['/chat']);
+            },
+            error: () => {
+                this.loading = false;
+                this.error = 'An account with this email already exists.';
+            }
+        });
     }
 }
