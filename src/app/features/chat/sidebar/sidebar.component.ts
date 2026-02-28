@@ -4,6 +4,8 @@ import { AvatarComponent } from '../../../shared/components/avatar/avatar.compon
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ChatListComponent } from '../chat-list/chat-list.component';
 import { ChatService } from '../../../core/services/chat.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { User } from '../../../core/models/user.model';
 
 @Component({
     selector: 'app-sidebar',
@@ -13,7 +15,21 @@ import { ChatService } from '../../../core/services/chat.service';
     styleUrls: ['./sidebar.component.css']
 })
 export class SidebarComponent {
-    currentUser$ = this.chatService.getCurrentUser();
+    currentUser$!: User;
 
-    constructor(private chatService: ChatService) { }
+    constructor(
+        private chatService: ChatService,
+        private authService: AuthService
+    ) {
+        this.currentUser$ = this.chatService.getCurrentUser();
+    }
+
+    get userBio(): string {
+        const u = this.currentUser$;
+        return u?.bio || u?.status || 'Hey there! I am using Chats.';
+    }
+
+    logout(): void {
+        this.authService.logout();
+    }
 }
