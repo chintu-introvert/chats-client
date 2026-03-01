@@ -12,13 +12,7 @@
             <button class="action-btn" title="New Chat" aria-label="New Chat">
                 <app-icon name="chat" [size]="22"></app-icon>
             </button>
-            <button
-                type="button"
-                class="action-btn"
-                title="Log out"
-                aria-label="Log out"
-                (click)="logout()"
-            >
+            <button type="button" class="action-btn" title="Log out" aria-label="Log out" (click)="logout()">
                 <app-icon name="logout" [size]="22"></app-icon>
             </button>
         </div>
@@ -30,12 +24,29 @@
             <div class="search-icon">
                 <app-icon name="search" [size]="18"></app-icon>
             </div>
-            <input type="text" placeholder="Search or start a new chat" class="search-input">
+            <input type="text" [(ngModel)]="searchQuery" placeholder="Search or start a new chat" class="search-input">
         </div>
     </div>
 
-    <!-- Chat List -->
+    <!-- Chat List / Search Results -->
     <div class="sidebar-content">
-        <app-chat-list></app-chat-list>
+        <app-chat-list *ngIf="!searchQuery"></app-chat-list>
+
+        <!-- Search Results -->
+        <div class="search-results-container" *ngIf="searchQuery">
+            <div class="search-results-header">Users</div>
+
+            <div class="user-list-item" *ngFor="let user of filteredUsers" (click)="startChat(user)">
+                <app-avatar [src]="user.avatarUrl" [alt]="user.name" [size]="48"></app-avatar>
+                <div class="user-info">
+                    <span class="user-name">{{ user.name }}</span>
+                    <span class="user-status">{{ user.status || 'Available' }}</span>
+                </div>
+            </div>
+
+            <div *ngIf="filteredUsers.length === 0" class="no-results">
+                No users found for "{{ searchQuery }}"
+            </div>
+        </div>
     </div>
 </div>

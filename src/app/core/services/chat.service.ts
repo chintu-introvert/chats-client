@@ -4,22 +4,27 @@ import { Chat } from '../models/chat.model';
 import { Message } from '../models/message.model';
 import { User } from '../models/user.model';
 import { AuthService } from './auth.service';
+import { environment } from '../../../environments/environment.development';
+import { HttpClient } from '@angular/common/http';
+import { io, Socket } from 'socket.io-client';
 
 @Injectable({
     providedIn: 'root'
 })
 export class ChatService {
+
+
     private readonly defaultUser: User = {
         id: 'user1',
         name: 'You',
         avatarUrl: 'https://i.pravatar.cc/150?u=user1',
     };
 
-    private currentUser: User;
+    private currentUser
     private mockUsers: User[] = [
-        { id: 'user2', name: 'Alice', avatarUrl: 'https://i.pravatar.cc/150?u=user2', status: 'Available' },
-        { id: 'user3', name: 'Bob', avatarUrl: 'https://i.pravatar.cc/150?u=user3', status: 'Busy' },
-        { id: 'user4', name: 'Charlie', avatarUrl: 'https://i.pravatar.cc/150?u=user4', status: 'At work' },
+        // { id: 'user2', name: 'Alice', avatarUrl: 'https://i.pravatar.cc/150?u=user2', status: 'Available' },
+        // { id: 'user3', name: 'Bob', avatarUrl: 'https://i.pravatar.cc/150?u=user3', status: 'Busy' },
+        // { id: 'user4', name: 'Charlie', avatarUrl: 'https://i.pravatar.cc/150?u=user4', status: 'At work' },
     ];
 
     private mockChats: Chat[] = [];
@@ -39,7 +44,10 @@ export class ChatService {
     private messagesSubject = new BehaviorSubject<Message[]>([]);
     public messages$ = this.messagesSubject.asObservable();
 
-    constructor(private authService: AuthService) {
+    // Socket.io connection instance
+    private socket: Socket | null = null;
+
+    constructor(private authService: AuthService, private http: HttpClient) {
         this.currentUser = this.authService.currentUser ?? this.defaultUser;
         this.buildMockChats();
         this.chatsSubject = new BehaviorSubject<Chat[]>(this.mockChats);
@@ -48,50 +56,50 @@ export class ChatService {
 
     private buildMockChats(): void {
         this.mockChats = [
-            {
-                id: 'chat1',
-                participants: [this.currentUser, this.mockUsers[0]],
-                isGroup: false,
-                unreadCount: 2,
-                lastMessage: {
-                    id: 'msg1',
-                    chatId: 'chat1',
-                    senderId: 'user2',
-                    content: 'Hey, are we still on for tomorrow?',
-                    timestamp: new Date(Date.now() - 1000 * 60 * 5),
-                    status: 'read'
-                }
-            },
-            {
-                id: 'chat2',
-                participants: [this.currentUser, this.mockUsers[1]],
-                isGroup: false,
-                unreadCount: 0,
-                lastMessage: {
-                    id: 'msg2',
-                    chatId: 'chat2',
-                    senderId: this.currentUser.id,
-                    content: 'Sent the documents.',
-                    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-                    status: 'read'
-                }
-            },
-            {
-                id: 'group1',
-                participants: [this.currentUser, ...this.mockUsers],
-                isGroup: true,
-                groupName: 'Angular Devs',
-                groupAvatar: 'https://ui-avatars.com/api/?name=Angular+Devs&background=00a884&color=fff',
-                unreadCount: 0,
-                lastMessage: {
-                    id: 'msg3',
-                    chatId: 'group1',
-                    senderId: 'user3',
-                    content: 'Check out the new standalone components.',
-                    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
-                    status: 'read'
-                }
-            }
+            // {
+            //     id: 'chat1',
+            //     participants: [this.currentUser, this.mockUsers[0]],
+            //     isGroup: false,
+            //     unreadCount: 2,
+            //     lastMessage: {
+            //         id: 'msg1',
+            //         chatId: 'chat1',
+            //         senderId: 'user2',
+            //         content: 'Hey, are we still on for tomorrow?',
+            //         timestamp: new Date(Date.now() - 1000 * 60 * 5),
+            //         status: 'read'
+            //     }
+            // },
+            // {
+            //     id: 'chat2',
+            //     participants: [this.currentUser, this.mockUsers[1]],
+            //     isGroup: false,
+            //     unreadCount: 0,
+            //     lastMessage: {
+            //         id: 'msg2',
+            //         chatId: 'chat2',
+            //         senderId: this.currentUser.id,
+            //         content: 'Sent the documents.',
+            //         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
+            //         status: 'read'
+            //     }
+            // },
+            // {
+            //     id: 'group1',
+            //     participants: [this.currentUser, ...this.mockUsers],
+            //     isGroup: true,
+            //     groupName: 'Angular Devs',
+            //     groupAvatar: 'https://ui-avatars.com/api/?name=Angular+Devs&background=00a884&color=fff',
+            //     unreadCount: 0,
+            //     lastMessage: {
+            //         id: 'msg3',
+            //         chatId: 'group1',
+            //         senderId: 'user3',
+            //         content: 'Check out the new standalone components.',
+            //         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
+            //         status: 'read'
+            //     }
+            // }
         ];
     }
 
@@ -101,6 +109,90 @@ export class ChatService {
 
     getChats(): Observable<Chat[]> {
         return this.chats$;
+    }
+
+
+
+    // fetch user list
+    getUsers(): Observable<User[]> {
+        return this.http.get<User[]>(`${environment.apiUrl}/users/get-all-users`);
+    }
+
+    createOrOpenChat(user: User): void {
+        const existingChat = this.mockChats.find(c =>
+            !c.isGroup && c.participants.some(p => p.id === user.id)
+        );
+
+        if (existingChat) {
+            this.setActiveChat(existingChat.id);
+        } else {
+            const newChat: Chat = {
+                id: `chat_${Date.now()}`,
+                participants: [this.currentUser, user],
+                isGroup: false,
+                unreadCount: 0
+            };
+            this.mockChats.unshift(newChat);
+            this.chatsSubject.next([...this.mockChats]);
+            this.setActiveChat(newChat.id);
+        }
+
+        // Establish socket connection for the current user 
+        const currentUserId = Number(this.currentUser.id);
+        this.establishSocketConnection(currentUserId);
+
+        // Optional: Send the test message automatically after establishing the socket connection
+        // Assuming the selected user is the receiver
+        const receiverId = Number(user.id);
+        // this.sendSocketMessage(currentUserId, receiverId, 'hi there');
+    }
+
+    private establishSocketConnection(userId: number) {
+        if (!this.socket) {
+            // Socket.IO normally uses the standard HTTP URL to connect
+            this.socket = io(environment.socketUrl, {
+                query: { userId: userId.toString() },
+                transports: ['websocket', 'polling'] // Try websocket first, fallback to polling
+            });
+
+            this.socket.on('connect', () => {
+                console.log(`Socket.IO connection established for user ${userId}`);
+            });
+
+            this.socket.on('message', (msg: any) => {
+                this.handleIncomingSocketMessage(msg);
+            });
+
+            this.socket.on('connect_error', (err) => {
+                console.error('Socket.IO Connection Error:', err);
+            });
+
+            this.socket.on('disconnect', () => {
+                console.log('Socket.IO connection closed');
+            });
+        }
+    }
+
+    public sendSocketMessage(senderId: number, receiverId: number, content: string) {
+        if (this.socket) {
+            const payload = {
+                senderId: senderId,
+                recieverId: receiverId, // Using 'recieverId' as per your example format
+                content: content
+            };
+
+            console.log('Sending message via Socket.IO', payload);
+
+            // Emitting to a generic event 'sendMessage'. Adjust to match your backend exactly.
+            this.socket.emit('sendMessage', payload);
+        } else {
+            console.warn('Cannot send message: Socket.IO connection is not active.');
+        }
+    }
+
+    private handleIncomingSocketMessage(msg: any) {
+        console.log('Received real-time message via socket:', msg);
+        // Implement logic here to add the incoming message to your this.mockMessages state
     }
 
     setActiveChat(chatId: string) {

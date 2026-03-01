@@ -6,7 +6,6 @@ import { User } from '../models/user.model';
 import { environment } from '../../../environments/environment.development';
 
 const STORAGE_KEY = 'chats_app_user';
-const API_URL = 'http://localhost:1000/api/auth';
 
 @Injectable({
     providedIn: 'root'
@@ -36,24 +35,34 @@ export class AuthService {
         }
     }
 
-    private persistUser(user: User | null): void {
+    private persistUser(user: User | null, token?: string): void {
         if (user) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+            if (token) {
+                localStorage.setItem('chats_app_token', token);
+            }
         } else {
             localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem('chats_app_token');
         }
         this.currentUserSubject.next(user);
     }
 
-    register(name: string, email: string, password: string): Observable<User> {
-        return this.http.post<User>(`${environment.apiUrl}/auth/register`, { name, email, password }).pipe(
-            tap(user => this.persistUser(user))
+    register(name: string, email: string, password: string): Observable<{ user: User, token: string }> {
+        return this.http.post<{ user: User, token: string }>(`${environment.apiUrl}/auth/register`, { name, email, password }).pipe(
+            tap(res => {
+                console.log(res, 'while registering');
+                this.persistUser(res.user, res.token);
+            })
         );
     }
 
-    login(email: string, password: string): Observable<User> {
-        return this.http.post<User>(`${environment.apiUrl}/authlogin`, { email, password }).pipe(
-            tap(user => this.persistUser(user))
+    login(email: string, password: string): Observable<{ user: User, token: string }> {
+        return this.http.post<{ user: User, token: string }>(`${environment.apiUrl}/auth/login`, { email, password }).pipe(
+            tap(res => {
+                console.log(res, 'while logging in');
+                this.persistUser(res.user, res.token);
+            })
         );
     }
 

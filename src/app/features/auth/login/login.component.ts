@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -19,7 +19,8 @@ export class LoginComponent implements OnInit {
 
     constructor(
         private auth: AuthService,
-        private router: Router
+        private router: Router,
+        private cdr: ChangeDetectorRef
     ) { }
 
     ngOnInit(): void {
@@ -36,13 +37,16 @@ export class LoginComponent implements OnInit {
         }
         this.loading = true;
         this.auth.login(this.email.trim(), this.password).subscribe({
-            next: () => {
+            next: (res) => {
+                console.log(res, 'while logging in')
                 this.loading = false;
                 this.router.navigate(['/chat']);
             },
-            error: () => {
+            error: (res) => {
+                console.log(res, ' error while logging in')
                 this.loading = false;
                 this.error = 'Invalid email or password.';
+                this.cdr.detectChanges();
             }
         });
     }
