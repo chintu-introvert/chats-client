@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { User } from '../models/user.model';
 import { environment } from '../../../environments/environment.development';
+import { ToastrService } from 'ngx-toastr';
 
 const STORAGE_KEY = 'chats_app_user';
 
@@ -14,7 +15,7 @@ export class AuthService {
     private currentUserSubject = new BehaviorSubject<User | null>(this.getStoredUser());
     currentUser$: Observable<User | null> = this.currentUserSubject.asObservable();
 
-    constructor(private router: Router, private http: HttpClient) { }
+    constructor(private router: Router, private http: HttpClient, private toastr: ToastrService) { }
 
     get currentUser(): User | null {
         return this.currentUserSubject.value;
@@ -53,6 +54,7 @@ export class AuthService {
             tap(res => {
                 console.log(res, 'while registering');
                 this.persistUser(res.user, res.token);
+                this.toastr.success('Registration successful!', 'Success');
             })
         );
     }
@@ -62,6 +64,7 @@ export class AuthService {
             tap(res => {
                 console.log(res, 'while logging in');
                 this.persistUser(res.user, res.token);
+                this.toastr.success('Logged in successfully!', 'Success');
             })
         );
     }

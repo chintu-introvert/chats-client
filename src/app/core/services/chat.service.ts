@@ -138,7 +138,7 @@ export class ChatService {
         }
 
         // Establish socket connection for the current user 
-        const currentUserId = Number(this.currentUser.id);
+        const currentUserId = this.currentUser.id;
         this.establishSocketConnection(currentUserId);
 
         // Optional: Send the test message automatically after establishing the socket connection
@@ -147,7 +147,7 @@ export class ChatService {
         // this.sendSocketMessage(currentUserId, receiverId, 'hi there');
     }
 
-    private establishSocketConnection(userId: number) {
+    private establishSocketConnection(userId: string | number) {
         if (!this.socket) {
             // Socket.IO normally uses the standard HTTP URL to connect
             this.socket = io(environment.socketUrl, {
@@ -173,11 +173,11 @@ export class ChatService {
         }
     }
 
-    public sendSocketMessage(senderId: number, receiverId: number, content: string) {
+    public sendSocketMessage(senderId: string | number, receiverId: string | number, content: string) {
         if (this.socket) {
             const payload = {
                 senderId: senderId,
-                recieverId: receiverId, // Using 'recieverId' as per your example format
+                receiverId: receiverId, // Fixed typo
                 content: content
             };
 
@@ -192,7 +192,75 @@ export class ChatService {
 
     private handleIncomingSocketMessage(msg: any) {
         console.log('Received real-time message via socket:', msg);
-        // Implement logic here to add the incoming message to your this.mockMessages state
+
+        const senderId = msg.senderId || msg.sender;
+        if (!senderId) return;
+
+        // Try to find the chat containing this sender as a participant
+        let existingChat = this.mockChats.find(c =>
+            !c.isGroup && c.participants.some(p => p.id.toString() === senderId.toString())
+        );
+
+        let chatId;
+
+        if (existingChat) {
+            chatId = existingChat.id;
+        } else {
+            // Need to create a new chat for this incoming message
+            chatId = msg.roomId || msg.chatId || `chat_${Date.now()}`;
+            existingChat = {
+                id: chatId,
+                participants: [this.currentUser, {
+                    id: senderId.toString(),
+                    name: msg.senderName || `User ${senderId}`,
+                    avatarUrl: 'https://i.pravatar.cc/150?u=' + senderId
+                }],
+                isGroup: false,
+                unreadCount: 0
+            };
+            this.mockChats.push(existingChat);
+        }
+
+        // Map the message payload to the Message model
+        const newMessage: Message = {
+            id: msg.id || Date.now().toString(),
+            chatId: chatId,
+            senderId: senderId.toString(),
+            content: msg.content || msg.message || '',
+            timestamp: msg.createdAt ? new Date(msg.createdAt) : new Date(),
+            status: 'received'
+        };
+
+        if (!this.mockMessages[chatId]) {
+            this.mockMessages[chatId] = [];
+        }
+
+        // Prevent duplicate appending if sender ID is current user
+        if (senderId.toString() !== this.currentUser.id.toString()) {
+            this.mockMessages[chatId].push(newMessage);
+        }
+
+        // Update the last message
+        existingChat.lastMessage = newMessage;
+
+        // Move chat to top and handle unread count
+        const chatIndex = this.mockChats.findIndex(c => c.id === chatId);
+        if (chatIndex > -1) {
+            const chatToMove = this.mockChats.splice(chatIndex, 1)[0];
+
+            // Only increment unread count if we are not actively viewing this chat
+            if (this.activeChatSubject.value?.id !== chatId) {
+                chatToMove.unreadCount = (chatToMove.unreadCount || 0) + 1;
+            }
+
+            this.mockChats.unshift(chatToMove);
+            this.chatsSubject.next([...this.mockChats]);
+        }
+
+        // Update active messages view if the user is looking at this chat
+        if (this.activeChatSubject.value?.id === chatId) {
+            this.messagesSubject.next([...this.mockMessages[chatId]]);
+        }
     }
 
     setActiveChat(chatId: string) {
@@ -243,28 +311,19 @@ export class ChatService {
             this.messagesSubject.next([...this.mockMessages[chatId]]);
         }
 
-        // Simulate reply after 1.5s
-        setTimeout(() => {
-            const replyMsg: Message = {
-                id: Date.now().toString() + 'r',
-                chatId,
-                senderId: this.mockChats.find(c => c.id === chatId)?.participants.find(p => p.id !== this.currentUser.id)?.id || 'unknown',
-                content: 'Got it!',
-                timestamp: new Date(),
-                status: 'sent'
-            };
-            this.mockMessages[chatId].push(replyMsg);
-            if (chatIndex > -1) {
-                this.mockChats[0].lastMessage = replyMsg;
-                if (this.activeChatSubject.value?.id !== chatId) {
-                    this.mockChats[0].unreadCount++;
-                }
-                this.chatsSubject.next([...this.mockChats]);
-            }
-            if (this.activeChatSubject.value?.id === chatId) {
-                this.messagesSubject.next([...this.mockMessages[chatId]]);
-            }
-        }, 1500);
+        // --- Execute real socket emit ---
+        const activeChat = this.mockChats.find(c => c.id === chatId);
+        const receiver = activeChat?.participants.find(p => p.id !== this.currentUser.id);
+
+        if (receiver) {
+            const senderId = this.currentUser.id;
+            const receiverId = receiver.id;
+
+            // Ensure socket is connected before sending
+            this.establishSocketConnection(senderId);
+
+            this.sendSocketMessage(senderId, receiverId, content);
+        }
     }
 
     pinChat(chatId: string) {
