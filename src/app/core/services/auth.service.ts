@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap, map, catchError, throwError } from 'rxjs';
 import { User } from '../models/user.model';
 import { environment } from '../../../environments/environment.development';
 import { ToastrService } from 'ngx-toastr';
@@ -49,12 +49,25 @@ export class AuthService {
         this.currentUserSubject.next(user);
     }
 
-    register(name: string, email: string, password: string): Observable<{ user: User, token: string }> {
-        return this.http.post<{ user: User, token: string }>(`${environment.apiUrl}/auth/register`, { name, email, password }).pipe(
+    register(name: string, email: string, password: string): Observable<any> {
+        return this.http.post<any>(`${environment.apiUrl}/auth/register`, { name, email, password }).pipe(
+            map(res => {
+                // If backend returns 200/201 but with success false or missing token
+                if (res.success === false || res.error || !res.token) {
+                    throw new Error(res.message || res.error || 'Registration failed');
+                }
+                return res;
+            }),
             tap(res => {
                 console.log(res, 'while registering');
                 this.persistUser(res.user, res.token);
                 this.toastr.success('Registration successful!', 'Success');
+            }),
+            catchError(err => {
+                // Normalize both HttpClient errors and custom map errors
+                const errorMsg = err.error?.message || err.message || 'An error occurred during registration.';
+                // Return an object that matches the structure expected by the component
+                return throwError(() => ({ error: { message: errorMsg } }));
             })
         );
     }

@@ -58,9 +58,9 @@ export class RegisterComponent implements OnInit {
                 this.loading = false;
                 this.router.navigate(['/chat']);
             },
-            error: () => {
+            error: (err) => {
                 this.loading = false;
-                this.error = 'An account with this email already exists.';
+                this.error = err?.error?.message || err?.message || 'An error occurred during registration.';
             }
         });
     }
