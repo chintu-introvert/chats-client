@@ -1,27 +1,19 @@
-# Stage 1: Build the Angular application
+# Stage 1: Build Angular App
 FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy the rest of the application code
 COPY . .
-
-# Build the application
 RUN npm run build -- --configuration production
 
-# Stage 2: Serve the application with Nginx
+# Stage 2: Serve with Nginx
 FROM nginx:alpine
 
-# Copy the build output to the Nginx html directory
 COPY --from=build /app/dist/chats-client/browser /usr/share/nginx/html
 
-# Copy a custom Nginx configuration if needed (optional)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-EXPOSE 80
+EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]
