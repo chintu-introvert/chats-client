@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
     selector: 'app-register',
@@ -21,7 +22,8 @@ export class RegisterComponent implements OnInit {
 
     constructor(
         private auth: AuthService,
-        private router: Router
+        private router: Router,
+        private toastr: ToastrService
     ) { }
 
     ngOnInit(): void {
@@ -54,13 +56,16 @@ export class RegisterComponent implements OnInit {
         }
         this.loading = true;
         this.auth.register(this.name.trim(), this.email.trim(), this.password).subscribe({
-            next: () => {
-                this.loading = false;
-                this.router.navigate(['/chat']);
-            },
-            error: (err) => {
-                this.loading = false;
-                this.error = err?.error?.message || err?.message || 'An error occurred during registration.';
+            next: (res: any) => {
+                console.log(res, 'while registering');
+                if (res.success) {
+                    this.loading = false;
+                    this.router.navigate(['/chat']);
+                } else {
+                    this.loading = false;
+                    this.error = res?.error?.message || res?.message || 'An error occurred during registration.';
+                    this.toastr.error(this.error, 'Error');
+                }
             }
         });
     }
