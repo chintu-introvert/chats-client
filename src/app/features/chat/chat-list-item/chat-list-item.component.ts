@@ -12,7 +12,7 @@ import { ChatService } from '../../../core/services/chat.service';
     styleUrls: ['./chat-list-item.component.css']
 })
 export class ChatListItemComponent {
-    @Input() chat!: Chat;
+    @Input() chat!: any;
     @Input() isActive: boolean = false;
 
     isMenuOpen = false;
@@ -27,26 +27,28 @@ export class ChatListItemComponent {
     }
 
     get chatName(): string {
-        if (this.chat.isGroup) {
-            return this.chat.groupName || 'Group';
-        } else {
-            const otherUser = this.chat.participants.find(p => p.id !== this.currentUserId);
-            return otherUser ? otherUser.name : 'Unknown';
-        }
+        // if (this.chat.isGroup) {
+        //     return this.chat.groupName || 'Group';
+        // } else {
+        //     const otherUser = this.chat.participants.find(p => p.id !== this.currentUserId);
+        //     return otherUser ? otherUser.name : 'Unknown';
+        // }
+        return this.chat?.name || '';
     }
 
     get chatAvatar(): string {
-        if (this.chat.isGroup) {
-            return this.chat.groupAvatar || '';
-        } else {
-            const otherUser = this.chat.participants.find(p => p.id !== this.currentUserId);
-            return otherUser ? otherUser.avatarUrl : '';
-        }
+        // if (this.chat.isGroup) {
+        //     return this.chat.groupAvatar || '';
+        // } else {
+        //     const otherUser = this.chat.participants.find(p => p.id !== this.currentUserId);
+        //     return otherUser ? otherUser.avatarUrl : '';
+        // }
+        return this.chat?.profile || 'https://i.pravatar.cc/150?u='+this.chat.id;
     }
 
     get lastMessageTime(): string {
         if (!this.chat.lastMessage) return '';
-        const date = new Date(this.chat.lastMessage.timestamp);
+        const date = new Date(this.chat.lastMessage.created_at);
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 

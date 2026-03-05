@@ -24,18 +24,18 @@
         <div class="chat-messages-bg"></div>
         <div class="chat-messages">
             <div class="message-wrapper" *ngFor="let msg of messages$ | async"
-                [class.message-sent]="msg.senderId === currentUserId" [class.message-received]="msg.senderId !== currentUserId">
+                [class.message-sent]="msg.userid === currentUserId" [class.message-received]="msg.userid !== currentUserId">
 
                 <div class="message-bubble">
                     <!-- Tail logic for received/sent -->
-                    <span class="message-tail-in" *ngIf="msg.senderId !== currentUserId">
+                    <span class="message-tail-in" *ngIf="msg.userid !== currentUserId">
                         <svg viewBox="0 0 8 13" width="8" height="13">
                             <path opacity=".13" d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z"></path>
                             <path fill="currentColor" d="M5.188 0H0v11.193l6.467-8.625C7.526 1.156 6.958 0 5.188 0z">
                             </path>
                         </svg>
                     </span>
-                    <span class="message-tail-out" *ngIf="msg.senderId === currentUserId">
+                    <span class="message-tail-out" *ngIf="msg.userid === currentUserId">
                         <svg viewBox="0 0 8 13" width="8" height="13">
                             <path opacity=".13" fill="#0000000"
                                 d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z"></path>
@@ -44,7 +44,7 @@
                         </svg>
                     </span>
 
-                    <span class="message-sender" *ngIf="activeChat.isGroup && msg.senderId !== currentUserId">
+                    <span class="message-sender" *ngIf="activeChat.isGroup && msg.userid !== currentUserId">
                         <!-- For group chats we show who sent it -->
                         Someone
                     </span>
@@ -52,8 +52,8 @@
                     <span dir="ltr" class="message-content">{{ msg.content }}</span>
 
                     <div class="message-meta">
-                        <span class="message-time">{{ msg.timestamp | date:'shortTime' }}</span>
-                        <span class="message-status" *ngIf="msg.senderId === currentUserId">
+                        <span class="message-time">{{ msg.created_at | date:'shortTime' }}</span>
+                        <!-- <span class="message-status" *ngIf="msg.userid === currentUserId">
                             <svg viewBox="0 0 16 15" width="16" height="15" fill="var(--wa-icon-color)"
                                 *ngIf="msg.status === 'read'">
                                 <path
@@ -66,7 +66,7 @@
                                     d="M4.606 10.957L.414 7.397a.401.401 0 0 1 .012-.598l.587-.514a.39.39 0 0 1 .59.02l2.96 2.502L9.366 2.585a.4.4 0 0 1 .593-.03l.542.48a.395.395 0 0 1 .035.589L4.606 10.957z">
                                 </path>
                             </svg>
-                        </span>
+                        </span> -->
                     </div>
                 </div>
             </div>

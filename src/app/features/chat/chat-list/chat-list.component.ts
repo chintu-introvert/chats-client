@@ -13,12 +13,12 @@ import { Chat } from '../../../core/models/chat.model';
     styleUrls: ['./chat-list.component.css']
 })
 export class ChatListComponent {
-    chats$: Observable<Chat[]>;
+    chats$: Observable<any[]>;
     activeChatId: string | null = null;
 
     constructor(private chatService: ChatService) {
         this.chats$ = this.chatService.getChats();
-        this.chatService.activeChat$.subscribe(chat => {
+        this.chatService.activeChat$.subscribe((chat: { id: string | null; }) => {
             this.activeChatId = chat ? chat.id : null;
         });
     }

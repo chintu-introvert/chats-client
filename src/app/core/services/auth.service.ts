@@ -45,6 +45,7 @@ export class AuthService {
         } else {
             localStorage.removeItem(STORAGE_KEY);
             localStorage.removeItem('chats_app_token');
+            localStorage.removeItem('activeChat');
         }
         this.currentUserSubject.next(user);
     }

@@ -19,7 +19,7 @@ export class ChatLayoutComponent implements OnInit, OnDestroy {
     constructor(private chatService: ChatService) { }
 
     ngOnInit() {
-        this.sub = this.chatService.activeChat$.subscribe(chat => {
+        this.sub = this.chatService.activeChat$.subscribe((chat: any) => {
             this.isChatOpen = !!chat;
         });
     }

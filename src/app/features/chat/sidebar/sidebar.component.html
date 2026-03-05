@@ -2,7 +2,7 @@
     <!-- Header -->
     <header class="sidebar-header">
         <div class="header-user">
-            <app-avatar [src]="currentUser$.avatarUrl" [alt]="currentUser$.name" [size]="42"></app-avatar>
+            <app-avatar [src]="currentUser$.profile || 'https://i.pravatar.cc/150?u='+currentUser$.id" [alt]="currentUser$.name" [size]="42"></app-avatar>
             <div class="header-user-info">
                 <span class="header-username">{{ currentUser$.name }}</span>
                 <span class="header-bio">{{ userBio }}</span>

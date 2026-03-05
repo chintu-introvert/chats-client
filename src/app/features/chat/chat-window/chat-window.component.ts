@@ -16,16 +16,34 @@ import { Message } from '../../../core/models/message.model';
     styleUrls: ['./chat-window.component.css']
 })
 export class ChatWindowComponent implements OnDestroy {
-    activeChat: Chat | null = null;
+    activeChat: any;
     private chatSub: Subscription;
-    messages$: Observable<Message[]>;
+    messages$: Observable<any[]>;
+    // messages: any;
 
     newMessage: string = '';
 
     constructor(private chatService: ChatService) {
         this.messages$ = this.chatService.messages$;
-        this.chatSub = this.chatService.activeChat$.subscribe(chat => {
+        this.chatSub = this.chatService.activeChat$.subscribe((chat: { id: any; roomid: any;}) => {
             this.activeChat = chat;
+            this.getmessages(chat.roomid);
+        });
+    }
+
+    getmessages(id: any){
+        this.chatService.getChatMessages(id).subscribe({
+            next: (res: any) => {
+                if (res.success) {
+                    this.chatService.roomMessages = res?.data;
+                    this.chatService.messagesSubject.next([...this.chatService.roomMessages]);
+                }
+                console.log(this.chatService.roomMessages, 'user rooms list');
+
+            },
+            error: (err: any) => {
+                console.log(err, ' error while fetching user rooms list');
+            }
         });
     }
 
@@ -34,17 +52,19 @@ export class ChatWindowComponent implements OnDestroy {
     }
 
     get chatName(): string {
-        if (!this.activeChat) return '';
-        if (this.activeChat.isGroup) return this.activeChat.groupName || 'Group';
-        const otherUser = this.activeChat.participants.find(p => p.id !== this.currentUserId);
-        return otherUser ? otherUser.name : 'Unknown';
+        // if (!this.activeChat) return '';
+        // if (this.activeChat.isGroup) return this.activeChat.groupName || 'Group';
+        // const otherUser = this.activeChat.participants.find(p => p.id !== this.currentUserId);
+        // return otherUser ? otherUser.name : 'Unknown';
+        return this.activeChat.name;
     }
 
     get chatAvatar(): string {
-        if (!this.activeChat) return '';
-        if (this.activeChat.isGroup) return this.activeChat.groupAvatar || '';
-        const otherUser = this.activeChat.participants.find(p => p.id !== this.currentUserId);
-        return otherUser ? otherUser.avatarUrl : '';
+        // if (!this.activeChat) return '';
+        // if (this.activeChat.isGroup) return this.activeChat.groupAvatar || '';
+        // const otherUser = this.activeChat.participants.find(p => p.id !== this.currentUserId);
+        // return otherUser ? otherUser.avatarUrl : '';
+         return this.activeChat?.profile || 'https://i.pravatar.cc/150?u='+this.activeChat.id;
     }
 
     sendMessage() {

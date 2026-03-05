@@ -4,4 +4,5 @@ export interface User {
     avatarUrl: string;
     status?: string;
     bio?: string;
+    profile?: string;
 }

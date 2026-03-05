@@ -12,7 +12,8 @@ import { io, Socket } from 'socket.io-client';
     providedIn: 'root'
 })
 export class ChatService {
-
+    userRooms: any = [];
+    roomMessages: any = [];
 
     private readonly defaultUser: User = {
         id: 'user1',
@@ -39,9 +40,9 @@ export class ChatService {
     public chats$: Observable<Chat[]>;
 
     private activeChatSubject = new BehaviorSubject<Chat | null>(null);
-    public activeChat$ = this.activeChatSubject.asObservable();
+    public activeChat$: any = this.activeChatSubject.asObservable();
 
-    private messagesSubject = new BehaviorSubject<Message[]>([]);
+    public messagesSubject = new BehaviorSubject<Message[]>([]);
     public messages$ = this.messagesSubject.asObservable();
 
     // Socket.io connection instance
@@ -49,13 +50,31 @@ export class ChatService {
 
     constructor(private authService: AuthService, private http: HttpClient) {
         this.currentUser = this.authService.currentUser ?? this.defaultUser;
-        this.buildMockChats();
-        this.chatsSubject = new BehaviorSubject<Chat[]>(this.mockChats);
+        this.chatsSubject = new BehaviorSubject<Chat[]>(this.userRooms);
         this.chats$ = this.chatsSubject.asObservable();
+        this.loadHistoryChats();
     }
 
-    private buildMockChats(): void {
-        this.mockChats = [];
+    private loadHistoryChats(): void {
+        this.userRooms = [];
+        this.getUserRooms().subscribe({
+            next: (res: any) => {
+                if (res.success) {
+                    this.userRooms = res?.data;
+                    this.chatsSubject.next([...this.userRooms]);
+                    const chat: any = localStorage.getItem('activeChat');
+                    const activeChat = JSON.parse(chat);
+                    if(activeChat){
+                       this.createOrOpenChat(activeChat); 
+                    }
+                }
+                console.log(this.userRooms, 'user rooms list');
+
+            },
+            error: (err) => {
+                console.log(err, ' error while fetching user rooms list');
+            }
+        });
     }
 
     getCurrentUser(): User {
@@ -73,22 +92,26 @@ export class ChatService {
         return this.http.get<User[]>(`${environment.apiUrl}/users/get-all-users`);
     }
 
-    createOrOpenChat(user: User): void {
-        const existingChat = this.mockChats.find(c =>
-            !c.isGroup && c.participants.some(p => p.id === user.id)
-        );
+    getUserRooms(): Observable<User[]> {
+        return this.http.get<User[]>(`${environment.apiUrl}/rooms/used`);
+    }
 
-        if (existingChat) {
-            this.setActiveChat(existingChat.id);
+    getChatMessages(id: any): Observable<User[]> {
+        return this.http.get<User[]>(`${environment.apiUrl}/messages/${id}`);
+    }
+
+    createOrOpenChat(user: User): void {
+        const existingChatIndex = this.userRooms.findIndex((c: { id: string; }) => c.id === user.id);
+        if (existingChatIndex > -1) {
+            this.setActiveChat(user.id);
         } else {
-            const newChat: Chat = {
-                id: `chat_${Date.now()}`,
-                participants: [this.currentUser, user],
-                isGroup: false,
-                unreadCount: 0
+            const newChat: any = {
+                id: user.id,
+                name: user.name,
+                bio: '',
             };
-            this.mockChats.unshift(newChat);
-            this.chatsSubject.next([...this.mockChats]);
+            this.userRooms.unshift(newChat);
+            this.chatsSubject.next([...this.userRooms]);
             this.setActiveChat(newChat.id);
         }
 
@@ -118,6 +141,10 @@ export class ChatService {
                 this.handleIncomingSocketMessage(msg);
             });
 
+            this.socket.on('newRoom', (res: any) => {
+                this.newRoomCreated(res);
+            });
+
             this.socket.on('connect_error', (err) => {
                 console.error('Socket.IO Connection Error:', err);
             });
@@ -145,140 +172,151 @@ export class ChatService {
         }
     }
 
+    private newRoomCreated(res: any){
+        const existingChatIndex = this.userRooms.findIndex((c: { id: string; roomid: any }) => c.id === res.id);
+        if (existingChatIndex > -1) {
+            const chat = this.userRooms[existingChatIndex];
+            chat.roomid = res.roomid;
+            localStorage.setItem('activeChat', JSON.stringify(chat));
+            this.activeChatSubject.next(chat);
+        }
+    }
+
     private handleIncomingSocketMessage(msg: any) {
         console.log('Received real-time message via socket:', msg);
 
-        const senderId = msg.senderId || msg.sender;
+        const senderId = msg.senderId || msg.userid;
         if (!senderId) return;
 
         // Try to find the chat containing this sender as a participant
-        let existingChat = this.mockChats.find(c =>
-            !c.isGroup && c.participants.some(p => p.id.toString() === senderId.toString())
-        );
-
+        const existingChatIndex = this.userRooms.findIndex((c: { id: string; roomid: any }) => c.id === senderId);
+        const existingChat = this.userRooms[existingChatIndex];
         let chatId;
 
-        if (existingChat) {
-            chatId = existingChat.id;
+        if (existingChatIndex > -1) {
+            chatId = this.userRooms[existingChatIndex].id;
         } else {
             // Need to create a new chat for this incoming message
-            chatId = msg.roomId || msg.chatId || `chat_${Date.now()}`;
-            existingChat = {
+            chatId = senderId;
+            const newChat = {
                 id: chatId,
-                participants: [this.currentUser, {
-                    id: senderId.toString(),
-                    name: msg.senderName || `User ${senderId}`,
-                    avatarUrl: 'https://i.pravatar.cc/150?u=' + senderId
-                }],
-                isGroup: false,
-                unreadCount: 0
+                roomid: msg.roomid,
+                name: msg.name,
+                bio: msg.bio,
+                profile: msg.profile,
+                lastMessage: {
+                    id: msg.id,
+                    content: msg.content,
+                    userid: msg.userid,
+                    roomid: msg.roomid,
+                    created_at: msg.created_at,
+                }
             };
-            this.mockChats.push(existingChat);
+            this.userRooms.push(newChat);
         }
 
         // Map the message payload to the Message model
-        const newMessage: Message = {
-            id: msg.id || Date.now().toString(),
-            chatId: chatId,
-            senderId: senderId.toString(),
-            content: msg.content || msg.message || '',
-            timestamp: msg.createdAt ? new Date(msg.createdAt) : new Date(),
-            status: 'received'
+        const newMessage: any = {
+                    id: msg.id,
+                    content: msg.content,
+                    userid: msg.userid,
+                    roomid: msg.roomid,
+                    created_at: msg.created_at,
         };
 
-        if (!this.mockMessages[chatId]) {
-            this.mockMessages[chatId] = [];
-        }
+        // if (!this.mockMessages[chatId]) {
+        //     this.mockMessages[chatId] = [];
+        // }
 
         // Prevent duplicate appending if sender ID is current user
         if (senderId.toString() !== this.currentUser.id.toString()) {
-            this.mockMessages[chatId].push(newMessage);
+            this.roomMessages.push(newMessage);
         }
 
         // Update the last message
         existingChat.lastMessage = newMessage;
 
         // Move chat to top and handle unread count
-        const chatIndex = this.mockChats.findIndex(c => c.id === chatId);
+        const chatIndex = this.userRooms.findIndex((c: { id: any; }) => c.id === chatId);
         if (chatIndex > -1) {
-            const chatToMove = this.mockChats.splice(chatIndex, 1)[0];
+            const chatToMove = this.userRooms.splice(chatIndex, 1)[0];
 
             // Only increment unread count if we are not actively viewing this chat
-            if (this.activeChatSubject.value?.id !== chatId) {
-                chatToMove.unreadCount = (chatToMove.unreadCount || 0) + 1;
-            }
+            // if (this.activeChatSubject.value?.id !== chatId) {
+            //     chatToMove.unreadCount = (chatToMove.unreadCount || 0) + 1;
+            // }
 
-            this.mockChats.unshift(chatToMove);
-            this.chatsSubject.next([...this.mockChats]);
+            this.userRooms.unshift(chatToMove);
+            this.chatsSubject.next([...this.userRooms]);
         }
 
         // Update active messages view if the user is looking at this chat
         if (this.activeChatSubject.value?.id === chatId) {
-            this.messagesSubject.next([...this.mockMessages[chatId]]);
+            this.messagesSubject.next([...this.roomMessages]);
         }
     }
 
     setActiveChat(chatId: string) {
-        const chat = this.mockChats.find(c => c.id === chatId) || null;
+        const chat: any = this.userRooms.find((c: { id: string; }) => c.id === chatId) || null;
         this.activeChatSubject.next(chat);
+        localStorage.setItem('activeChat', JSON.stringify(chat));
 
         // Load messages for this chat
-        if (chatId && this.mockMessages[chatId]) {
-            this.messagesSubject.next(this.mockMessages[chatId]);
-        } else {
-            this.messagesSubject.next([]);
-        }
+        // if (chatId && this.mockMessages[chatId]) {
+        //     this.messagesSubject.next(this.mockMessages[chatId]);
+        // } else {
+        //     this.messagesSubject.next([]);
+        // }
 
         if (chat) {
-            chat.unreadCount = 0;
-            this.chatsSubject.next([...this.mockChats]);
+            // chat.unreadCount = 0;
+            this.chatsSubject.next([...this.userRooms]);
         }
     }
 
-    sendMessage(chatId: string, content: string) {
-        const newMessage: Message = {
+    sendMessage(chatId: any, content: string) {
+        const newMessage: any = {
             id: Date.now().toString(),
-            chatId,
-            senderId: this.currentUser.id,
+            roomid:'newRoom',
+            userid: this.currentUser.id,
             content,
-            timestamp: new Date(),
-            status: 'sent'
+            created_at: new Date(),
         };
 
-        if (!this.mockMessages[chatId]) {
-            this.mockMessages[chatId] = [];
-        }
+        // if (!this.mockMessages[chatId]) {
+        //     this.mockMessages[chatId] = [];
+        // }
 
-        this.mockMessages[chatId].push(newMessage);
+        this.roomMessages.push(newMessage);
 
         // Update last message in chat list
-        const chatIndex = this.mockChats.findIndex(c => c.id === chatId);
+        const chatIndex = this.userRooms.findIndex((c: { id: string; roomid: any }) => c.id === chatId);
         if (chatIndex > -1) {
-            this.mockChats[chatIndex].lastMessage = newMessage;
+            this.userRooms[chatIndex].lastMessage = newMessage;
             // Move chat to top
-            const chat = this.mockChats.splice(chatIndex, 1)[0];
-            this.mockChats.unshift(chat);
-            this.chatsSubject.next([...this.mockChats]);
+            const chat = this.userRooms.splice(chatIndex, 1)[0];
+            this.userRooms.unshift(chat);
+            this.chatsSubject.next([...this.userRooms]);
         }
 
         // Update messages view if it's the active chat
         if (this.activeChatSubject.value?.id === chatId) {
-            this.messagesSubject.next([...this.mockMessages[chatId]]);
+            this.messagesSubject.next([...this.roomMessages]);
         }
 
         // --- Execute real socket emit ---
-        const activeChat = this.mockChats.find(c => c.id === chatId);
-        const receiver = activeChat?.participants.find(p => p.id !== this.currentUser.id);
+        // const activeChat: any = this.userRooms.find((c: { id: any; }) => c.id === chatId);
+        // const receiver = activeChat?.participants.find(p => p.id !== this.currentUser.id);
 
-        if (receiver) {
+        // if (receiver) {
             const senderId = this.currentUser.id;
-            const receiverId = receiver.id;
+            const receiverId = chatId;
 
             // Ensure socket is connected before sending
             this.establishSocketConnection(senderId);
 
             this.sendSocketMessage(senderId, receiverId, content);
-        }
+        // }
     }
 
     pinChat(chatId: string) {
