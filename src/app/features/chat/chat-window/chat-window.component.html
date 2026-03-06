@@ -5,7 +5,7 @@
             <app-avatar [src]="chatAvatar" [alt]="chatName" [size]="40"></app-avatar>
             <div class="chat-header-text">
                 <span class="chat-header-name">{{ chatName }}</span>
-                <span class="chat-header-status" *ngIf="!activeChat.isGroup">click here for contact info</span>
+                <!-- <span class="chat-header-status" *ngIf="!activeChat.isGroup">click here for contact info</span> -->
                 <span class="chat-header-status" *ngIf="activeChat.isGroup">
                     <ng-container *ngFor="let p of activeChat.participants; let last=last">
                         {{ p.name }}{{ !last ? ', ' : '' }}
@@ -13,10 +13,10 @@
                 </span>
             </div>
         </div>
-        <div class="chat-header-actions">
+        <!-- <div class="chat-header-actions">
             <button class="action-btn" title="Search"><app-icon name="search" [size]="24"></app-icon></button>
             <button class="action-btn" title="Menu"><app-icon name="menu" [size]="24"></app-icon></button>
-        </div>
+        </div> -->
     </header>
 
     <!-- Messages Area -->
@@ -75,10 +75,10 @@
 
     <!-- Input Area -->
     <footer class="chat-footer">
-        <div class="chat-footer-tools">
+        <!-- <div class="chat-footer-tools">
             <button class="action-btn" title="Smiley"><app-icon name="smiley" [size]="26"></app-icon></button>
             <button class="action-btn" title="Attach"><app-icon name="attach" [size]="24"></app-icon></button>
-        </div>
+        </div> -->
         <div class="chat-input-container">
             <input type="text" class="chat-input" placeholder="Type a message" [(ngModel)]="newMessage"
                 (keydown)="onKeydown($event)">

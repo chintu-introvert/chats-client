@@ -5,13 +5,13 @@
             <app-avatar [src]="currentUser$.profile || 'https://i.pravatar.cc/150?u='+currentUser$.id" [alt]="currentUser$.name" [size]="42"></app-avatar>
             <div class="header-user-info">
                 <span class="header-username">{{ currentUser$.name }}</span>
-                <span class="header-bio">{{ userBio }}</span>
+                <!-- <span class="header-bio">{{ userBio }}</span> -->
             </div>
         </div>
         <div class="header-actions">
-            <button class="action-btn" title="New Chat" aria-label="New Chat">
+            <!-- <button class="action-btn" title="New Chat" aria-label="New Chat">
                 <app-icon name="chat" [size]="22"></app-icon>
-            </button>
+            </button> -->
             <button type="button" class="action-btn" title="Log out" aria-label="Log out" (click)="logout()">
                 <app-icon name="logout" [size]="22"></app-icon>
             </button>
@@ -21,9 +21,9 @@
     <!-- Search Bar -->
     <div class="sidebar-search-container">
         <div class="search-input-wrapper">
-            <div class="search-icon">
+            <!-- <div class="search-icon">
                 <app-icon name="search" [size]="18"></app-icon>
-            </div>
+            </div> -->
             <input type="text" [(ngModel)]="searchQuery" placeholder="Search or start a new chat" class="search-input">
         </div>
     </div>

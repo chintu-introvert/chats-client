@@ -39,8 +39,13 @@ export class LoginComponent implements OnInit {
         this.auth.login(this.email.trim(), this.password).subscribe({
             next: (res) => {
                 console.log(res, 'while logging in')
+                if (res.status === true) {
+                    this.router.navigate(['/chat']);
+                } else {
+                    this.error = res.message || 'Login failed. Please try again.';
+                    this.cdr.detectChanges();
+                }
                 this.loading = false;
-                this.router.navigate(['/chat']);
             },
             error: (res) => {
                 console.log(res, ' error while logging in')
