@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastrService } from 'ngx-toastr';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-register',
@@ -24,7 +25,8 @@ export class RegisterComponent implements OnInit {
     private auth: AuthService,
     private router: Router,
     private toastr: ToastrService,
-  ) {}
+    private cdr: ChangeDetectorRef,
+  ) { }
 
   ngOnInit(): void {
     if (this.auth.isAuthenticated()) {
@@ -55,24 +57,29 @@ export class RegisterComponent implements OnInit {
       return;
     }
     this.loading = true;
-    this.auth.register(this.name.trim(), this.email.trim(), this.password).subscribe({
-      next: (res: any) => {
-        console.log(res, 'while registering');
-        if (res.status === true) {
-          this.router.navigate(['/chat']);
-        } else {
-          this.error = res.message || 'Registration failed. Please try again.';
+    this.auth.register(this.name.trim(), this.email.trim(), this.password)
+      .pipe(finalize(() => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: (res: any) => {
+          console.log(res, 'while registering');
+          if (res.success === true || res.status === true) {
+            this.router.navigate(['/chat']);
+          } else {
+            this.error = res.error || res.message || 'Registration failed. Please try again.';
+            this.toastr.error(this.error, 'Error');
+            this.cdr.detectChanges();
+          }
+        },
+        error: (err) => {
+          console.error(err, 'while registering');
+          this.error =
+            err?.error?.message || err?.error?.error || err?.message || 'An error occurred during registration.';
           this.toastr.error(this.error, 'Error');
-        }
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error(err, 'while registering');
-        this.loading = false;
-        this.error =
-          err?.error?.message || err?.message || 'An error occurred during registration.';
-        this.toastr.error(this.error, 'Error');
-      },
-    });
+          this.cdr.detectChanges();
+        },
+      });
   }
 }

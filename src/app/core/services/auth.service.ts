@@ -19,7 +19,7 @@ export class AuthService {
     private router: Router,
     private http: HttpClient,
     private toastr: ToastrService,
-  ) {}
+  ) { }
 
   get currentUser(): User | null {
     return this.currentUserSubject.value;
@@ -60,8 +60,10 @@ export class AuthService {
       .pipe(
         tap((res) => {
           console.log(res, 'while registering');
-          this.persistUser(res.user, res.token);
-          this.toastr.success('Registration successful!', 'Success');
+          if (res.status === true) {
+            this.persistUser(res.user, res.token);
+            this.toastr.success('Registration successful!', 'Success');
+          }
         }),
       );
   }
@@ -72,8 +74,10 @@ export class AuthService {
       .pipe(
         tap((res) => {
           console.log(res, 'while logging in');
-          this.persistUser(res.user, res.token);
-          this.toastr.success('Logged in successfully!', 'Success');
+          if (res.success === true || res.status === true) {
+            this.persistUser(res.user, res.token);
+            this.toastr.success('Logged in successfully!', 'Success');
+          }
         }),
       );
   }

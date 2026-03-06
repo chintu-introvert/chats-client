@@ -21,7 +21,7 @@ export class ChatService {
         avatarUrl: 'https://i.pravatar.cc/150?u=user1',
     };
 
-    private currentUser
+    private currentUser: any;
     private mockUsers: User[] = [
         // { id: 'user2', name: 'Alice', avatarUrl: 'https://i.pravatar.cc/150?u=user2', status: 'Available' },
         // { id: 'user3', name: 'Bob', avatarUrl: 'https://i.pravatar.cc/150?u=user3', status: 'Busy' },
@@ -49,10 +49,41 @@ export class ChatService {
     private socket: Socket | null = null;
 
     constructor(private authService: AuthService, private http: HttpClient) {
-        this.currentUser = this.authService.currentUser ?? this.defaultUser;
         this.chatsSubject = new BehaviorSubject<Chat[]>(this.userRooms);
         this.chats$ = this.chatsSubject.asObservable();
-        this.loadHistoryChats();
+
+        this.authService.currentUser$.subscribe(user => {
+            if (user) {
+                this.currentUser = user;
+                this.loadHistoryChats();
+                // Establish socket connection as soon as the user logs in
+                // so the receiver always hears incoming messages
+                this.establishSocketConnection(user.id);
+            } else {
+                this.clearState();
+            }
+        });
+    }
+
+    private clearState() {
+        this.currentUser = this.defaultUser;
+        this.userRooms = [];
+        this.roomMessages = [];
+
+        if (this.chatsSubject) {
+            this.chatsSubject.next([...this.userRooms]);
+        }
+        if (this.activeChatSubject) {
+            this.activeChatSubject.next(null);
+        }
+        if (this.messagesSubject) {
+            this.messagesSubject.next([]);
+        }
+
+        if (this.socket) {
+            this.socket.disconnect();
+            this.socket = null;
+        }
     }
 
     private loadHistoryChats(): void {
@@ -64,8 +95,8 @@ export class ChatService {
                     this.chatsSubject.next([...this.userRooms]);
                     const chat: any = localStorage.getItem('activeChat');
                     const activeChat = JSON.parse(chat);
-                    if(activeChat){
-                       this.createOrOpenChat(activeChat); 
+                    if (activeChat) {
+                        this.createOrOpenChat(activeChat);
                     }
                 }
                 console.log(this.userRooms, 'user rooms list');
@@ -172,7 +203,7 @@ export class ChatService {
         }
     }
 
-    private newRoomCreated(res: any){
+    private newRoomCreated(res: any) {
         const existingChatIndex = this.userRooms.findIndex((c: { id: string; roomid: any }) => c.id === res.id);
         if (existingChatIndex > -1) {
             const chat = this.userRooms[existingChatIndex];
@@ -196,32 +227,18 @@ export class ChatService {
         if (existingChatIndex > -1) {
             chatId = this.userRooms[existingChatIndex].id;
         } else {
-            // Need to create a new chat for this incoming message
+            // New chat from a previously unknown sender — refresh from server
             chatId = senderId;
-            const newChat = {
-                id: chatId,
-                roomid: msg.roomid,
-                name: msg.name,
-                bio: msg.bio,
-                profile: msg.profile,
-                lastMessage: {
-                    id: msg.id,
-                    content: msg.content,
-                    userid: msg.userid,
-                    roomid: msg.roomid,
-                    created_at: msg.created_at,
-                }
-            };
-            this.userRooms.push(newChat);
+            this.loadHistoryChats();
         }
 
         // Map the message payload to the Message model
         const newMessage: any = {
-                    id: msg.id,
-                    content: msg.content,
-                    userid: msg.userid,
-                    roomid: msg.roomid,
-                    created_at: msg.created_at,
+            id: msg.id,
+            content: msg.content,
+            userid: msg.userid,
+            roomid: msg.roomid,
+            created_at: msg.created_at,
         };
 
         // if (!this.mockMessages[chatId]) {
@@ -277,7 +294,7 @@ export class ChatService {
     sendMessage(chatId: any, content: string) {
         const newMessage: any = {
             id: Date.now().toString(),
-            roomid:'newRoom',
+            roomid: 'newRoom',
             userid: this.currentUser.id,
             content,
             created_at: new Date(),
@@ -309,13 +326,13 @@ export class ChatService {
         // const receiver = activeChat?.participants.find(p => p.id !== this.currentUser.id);
 
         // if (receiver) {
-            const senderId = this.currentUser.id;
-            const receiverId = chatId;
+        const senderId = this.currentUser.id;
+        const receiverId = chatId;
 
-            // Ensure socket is connected before sending
-            this.establishSocketConnection(senderId);
+        // Ensure socket is connected before sending
+        this.establishSocketConnection(senderId);
 
-            this.sendSocketMessage(senderId, receiverId, content);
+        this.sendSocketMessage(senderId, receiverId, content);
         // }
     }
 

@@ -23,26 +23,35 @@ export class ChatWindowComponent implements OnDestroy {
 
     newMessage: string = '';
 
+    private previousRoomId: any = null;
+
     constructor(private chatService: ChatService) {
         this.messages$ = this.chatService.messages$;
-        this.chatSub = this.chatService.activeChat$.subscribe((chat: { id: any; roomid: any;}) => {
+        this.chatSub = this.chatService.activeChat$.subscribe((chat: { id: any; roomid: any; }) => {
             this.activeChat = chat;
-            this.getmessages(chat.roomid);
+            // Only fetch messages when the room actually changes,
+            // not on every emit (e.g. newRoomCreated updates roomid on same chat)
+            if (chat?.roomid && chat.roomid !== this.previousRoomId) {
+                this.previousRoomId = chat.roomid;
+                this.getmessages(chat.roomid);
+            }
         });
     }
 
-    getmessages(id: any){
+    getmessages(id: any) {
+        if (!id) return;  // No roomid yet — new chat, nothing to fetch
         this.chatService.getChatMessages(id).subscribe({
             next: (res: any) => {
-                if (res.success) {
+                if (res.success && res?.data?.length > 0) {
+                    // Only overwrite if server actually returned messages.
+                    // Prevents race condition where newRoom fires before DB commit.
                     this.chatService.roomMessages = res?.data;
                     this.chatService.messagesSubject.next([...this.chatService.roomMessages]);
                 }
                 console.log(this.chatService.roomMessages, 'user rooms list');
-
             },
             error: (err: any) => {
-                console.log(err, ' error while fetching user rooms list');
+                console.log(err, ' error while fetching messages');
             }
         });
     }
@@ -64,7 +73,7 @@ export class ChatWindowComponent implements OnDestroy {
         // if (this.activeChat.isGroup) return this.activeChat.groupAvatar || '';
         // const otherUser = this.activeChat.participants.find(p => p.id !== this.currentUserId);
         // return otherUser ? otherUser.avatarUrl : '';
-         return this.activeChat?.profile || 'https://i.pravatar.cc/150?u='+this.activeChat.id;
+        return this.activeChat?.profile || 'https://i.pravatar.cc/150?u=' + this.activeChat.id;
     }
 
     sendMessage() {
@@ -83,10 +92,12 @@ export class ChatWindowComponent implements OnDestroy {
 
     // Helper method to scroll to bottom, will call via template
     ngAfterViewChecked() {
-        const messageContainer = document.querySelector('.chat-messages');
-        if (messageContainer) {
-            messageContainer.scrollTop = messageContainer.scrollHeight;
-        }
+        setTimeout(() => {
+            const messageContainer = document.querySelector('.chat-messages');
+            if (messageContainer) {
+                messageContainer.scrollTop = messageContainer.scrollHeight;
+            }
+        }, 0);
     }
 
     ngOnDestroy() {

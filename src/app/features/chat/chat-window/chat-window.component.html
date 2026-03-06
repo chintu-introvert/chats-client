@@ -24,18 +24,21 @@
         <div class="chat-messages-bg"></div>
         <div class="chat-messages">
             <div class="message-wrapper" *ngFor="let msg of messages$ | async"
-                [class.message-sent]="msg.userid === currentUserId" [class.message-received]="msg.userid !== currentUserId">
+                [class.message-sent]="(msg.userid || msg.senderId)?.toString() === currentUserId.toString()"
+                [class.message-received]="(msg.userid || msg.senderId)?.toString() !== currentUserId.toString()">
 
                 <div class="message-bubble">
                     <!-- Tail logic for received/sent -->
-                    <span class="message-tail-in" *ngIf="msg.userid !== currentUserId">
+                    <span class="message-tail-in"
+                        *ngIf="(msg.userid || msg.senderId)?.toString() !== currentUserId.toString()">
                         <svg viewBox="0 0 8 13" width="8" height="13">
                             <path opacity=".13" d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z"></path>
                             <path fill="currentColor" d="M5.188 0H0v11.193l6.467-8.625C7.526 1.156 6.958 0 5.188 0z">
                             </path>
                         </svg>
                     </span>
-                    <span class="message-tail-out" *ngIf="msg.userid === currentUserId">
+                    <span class="message-tail-out"
+                        *ngIf="(msg.userid || msg.senderId)?.toString() === currentUserId.toString()">
                         <svg viewBox="0 0 8 13" width="8" height="13">
                             <path opacity=".13" fill="#0000000"
                                 d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z"></path>
@@ -44,7 +47,8 @@
                         </svg>
                     </span>
 
-                    <span class="message-sender" *ngIf="activeChat.isGroup && msg.userid !== currentUserId">
+                    <span class="message-sender"
+                        *ngIf="activeChat.isGroup && (msg.userid || msg.senderId)?.toString() !== currentUserId.toString()">
                         <!-- For group chats we show who sent it -->
                         Someone
                     </span>
